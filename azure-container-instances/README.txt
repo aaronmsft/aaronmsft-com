@@ -1,7 +1,7 @@
 # Azure Container Instances (ACI) across 3 regions in under 30 seconds with Azure Traffic Manager
 # -----------------------------------------------------------------------------------------------
 
-blog: http://www.aaronmsft.com/posts/azure-container-instances/
+blog: https://www.aaronmsft.com/posts/azure-container-instances/
 
 
 # 1. deploy
