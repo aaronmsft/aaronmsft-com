@@ -1,7 +1,7 @@
 # Explore Kubernetes and Azure Low-priority VMs on Virtual Machine Scale Sets with kubeadm
 # ----------------------------------------------------------------------------------------
 
-blog: https://www.aaronmsft.com/posts/azure-vmss-kubernetes-kubeadm
+blog: https://www.aaronmsft.com/posts/azure-vmss-kubernetes-kubeadm/
 
 # 1. azure
 # --------
