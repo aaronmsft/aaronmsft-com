@@ -52,6 +52,6 @@ az storage account create -g $RESOURCE_GROUP -n $STORAGE_ACCOUNT \
 
 export AZURE_STORAGE_CONNECTION_STRING=$(az storage account show-connection-string -g $RESOURCE_GROUP -n $STORAGE_ACCOUNT | jq -r .connectionString)
 
-cd public/
+cd aaronmsft-com/
 # az storage blob delete-batch --source $STORAGE_CONTAINER
-az storage blob upload-batch --source . --destination $STORAGE_CONTAINER
+az storage blob upload-batch --source public/ --destination $STORAGE_CONTAINER
