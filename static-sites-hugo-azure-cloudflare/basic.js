@@ -14,6 +14,11 @@ async function fetchAndLog(request) {
         dst.pathname += 'index.html'
     }
     console.log('dst:', dst.toString())
-    const response = await fetch(dst, request)
+
+    let response = await fetch(dst, request)
+    if (response.status == 404) {
+        return new Response('<html><body><h1>We\'re sorry, this page was not found.</h1><p><a href="https://xkcd.com/1969/"><img src="https://imgs.xkcd.com/comics/not_available_2x.png" /></p></body></html>',
+            { status: 404, statusText: 'Not found', headers: { 'Content-Type': 'text/html' } })
+    }
     return response
 }
