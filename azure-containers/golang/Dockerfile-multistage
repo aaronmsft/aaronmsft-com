@@ -1,0 +1,28 @@
+FROM golang:alpine as builder
+
+ENV PATH /go/bin:/usr/local/go/bin:$PATH
+ENV GOPATH /go
+
+RUN	apk add --no-cache \
+	ca-certificates
+
+COPY main.go /go/src/hello-golang/
+
+RUN set -x \
+	&& apk add --no-cache --virtual .build-deps \
+		git \
+		gcc \
+		libc-dev \
+		libgcc \
+	&& cd /go/src/hello-golang/ \
+	&& CGO_ENABLED=0 go build -a -tags netgo -ldflags '-extldflags "-static"' -o /usr/bin/hello-golang . \
+	&& apk del .build-deps \
+	&& rm -rf /go \
+	&& echo "Build complete."
+
+FROM scratch
+
+COPY --from=builder /usr/bin/hello-golang /usr/bin/hello-golang
+COPY --from=builder /etc/ssl/certs/ /etc/ssl/certs
+
+ENTRYPOINT [ "hello-golang" ]
