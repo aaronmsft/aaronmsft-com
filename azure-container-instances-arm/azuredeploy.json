@@ -1,0 +1,337 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "name": {
+            "type": "string",
+            "metadata": {
+                "description": "Name for the container group"
+            },
+            "defaultValue": "container"
+        },
+        "image": {
+            "type": "string",
+            "metadata": {
+                "description": "Container image to deploy. Should be of the form accountName/imagename:tag for images stored in Docker Hub or a fully qualified URI for a private registry like the Azure Container Registry."
+            },
+            "defaultValue": "aaronmsft/hello-golang"
+        },
+        "command": {
+            "type": "array",
+            "metadata": {
+                "description": ""
+            },
+            "defaultValue": []
+        },
+        "port": {
+            "type": "string",
+            "metadata": {
+                "description": "Port to open on the container and the public IP address."
+            },
+            "defaultValue": "80"
+        },
+        "cpuCores": {
+            "type": "string",
+            "metadata": {
+                "description": "The number of CPU cores to allocate to the container. Must be an integer."
+            },
+            "defaultValue": "1.0"
+        },
+        "memoryInGb": {
+            "type": "string",
+            "metadata": {
+                "description": "The amount of memory to allocate to the container in gigabytes."
+            },
+            "defaultValue": "1.0"
+        },
+        "region1": {
+            "type": "string",
+            "allowedValues": [
+                "eastus",
+                "westus",
+                "westus2",
+                "westeurope",
+                "southeastasia"
+            ],
+            "defaultValue": "eastus",
+            "metadata": {
+                "description": "The first region to deploy to."
+            }
+        },
+        "region1Count": {
+            "type": "int",
+            "metadata": {
+                "description": "The number of instances to deploy in the first region."
+            },
+            "defaultValue": 1
+        },
+        "region2": {
+            "type": "string",
+            "allowedValues": [
+                "eastus",
+                "westus",
+                "westus2",
+                "westeurope",
+                "southeastasia"
+            ],
+            "defaultValue": "westus",
+            "metadata": {
+                "description": "The second region to deploy to."
+            }
+        },
+        "region2Count": {
+            "type": "int",
+            "metadata": {
+                "description": "The number of instances to deploy in the second region."
+            },
+            "defaultValue": 1
+        },
+        "region3": {
+            "type": "string",
+            "allowedValues": [
+                "eastus",
+                "westus",
+                "westus2",
+                "westeurope",
+                "southeastasia"
+            ],
+            "defaultValue": "westeurope",
+            "metadata": {
+                "description": "The third region to deploy to."
+            }
+        },
+        "region3Count": {
+            "type": "int",
+            "metadata": {
+                "description": "The number of instances to deploy in the third region."
+            },
+            "defaultValue": 1
+        },
+        "trafficManagerFQDN": {
+            "type": "string",
+            "metadata": {
+                "description": "DNS prefix for your Traffic Manager (i.e. trafficManagerFQDN.trafficmanager.net). This must be globally unique and will follow the format tm-<uniqueString>.trafficmanager.net by default."
+            },
+            "defaultValue": "[concat('tm-', uniqueString(resourceGroup().id))]"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Network/trafficManagerProfiles",
+            "name": "traffic-manager",
+            "apiVersion": "2017-05-01",
+            "location": "global",
+            "properties": {
+                "profileStatus": "Enabled",
+                "trafficRoutingMethod": "Weighted",
+                "dnsConfig": {
+                    "relativeName": "[parameters('trafficManagerFQDN')]",
+                    "fqdn": "[concat(parameters('trafficManagerFQDN'),'.trafficmanager.net')]",
+                    "ttl": 30
+                },
+                "monitorConfig": {
+                    "protocol": "HTTP",
+                    "port": 80,
+                    "path": "/",
+                    "intervalInSeconds": 10,
+                    "toleratedNumberOfFailures": 0,
+                    "timeoutInSeconds": 5
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "type": "Microsoft.Network/trafficManagerProfiles/externalEndpoints",
+            "name": "[concat('traffic-manager', '/', 'endpoint', '-', parameters('region1'), '-', copyIndex())]",
+            "apiVersion": "2017-05-01",
+            "dependsOn": [
+                "[concat('Microsoft.Network/trafficManagerProfiles','/','traffic-manager')]"
+            ],
+            "condition": "[greater(parameters('region1Count'), 0)]",
+            "copy": {
+                "name": "containercopy",
+                "count": "[if(equals(parameters('region1Count'), 0), 1, parameters('region1Count'))]"
+            },
+            "properties": {
+                "endpointStatus": "Enabled",
+                "target": "[concat(parameters('name'), '-', parameters('region1'), '-', copyIndex(), '-', uniqueString(resourceGroup().id), '.', parameters('region1'), '.azurecontainer.io')]",
+                "weight": 1
+            }
+        },
+        {
+            "type": "Microsoft.Network/trafficManagerProfiles/externalEndpoints",
+            "name": "[concat('traffic-manager', '/', 'endpoint', '-', parameters('region2'), '-', copyIndex())]",
+            "apiVersion": "2017-05-01",
+            "dependsOn": [
+                "[concat('Microsoft.Network/trafficManagerProfiles','/','traffic-manager')]"
+            ],
+            "condition": "[greater(parameters('region2Count'), 0)]",
+            "copy": {
+                "name": "containercopy",
+                "count": "[if(equals(parameters('region2Count'), 0), 1, parameters('region2Count'))]"
+            },
+            "properties": {
+                "endpointStatus": "Enabled",
+                "target": "[concat(parameters('name'), '-', parameters('region2'), '-', copyIndex(), '-', uniqueString(resourceGroup().id), '.', parameters('region2'), '.azurecontainer.io')]",
+                "weight": 1
+            }
+        },
+        {
+            "type": "Microsoft.Network/trafficManagerProfiles/externalEndpoints",
+            "name": "[concat('traffic-manager', '/', 'endpoint', '-', parameters('region3'), '-', copyIndex())]",
+            "apiVersion": "2017-05-01",
+            "dependsOn": [
+                "[concat('Microsoft.Network/trafficManagerProfiles','/','traffic-manager')]"
+            ],
+            "condition": "[greater(parameters('region3Count'), 0)]",
+            "copy": {
+                "name": "containercopy",
+                "count": "[if(equals(parameters('region3Count'), 0), 1, parameters('region3Count'))]"
+            },
+            "properties": {
+                "endpointStatus": "Enabled",
+                "target": "[concat(parameters('name'), '-', parameters('region3'), '-', copyIndex(), '-', uniqueString(resourceGroup().id), '.', parameters('region3'), '.azurecontainer.io')]",
+                "weight": 1
+            }
+        },
+        {
+            "type": "Microsoft.ContainerInstance/containerGroups",
+            "name": "[concat(parameters('name'), '-', parameters('region1'), '-', copyIndex())]",
+            "apiVersion": "2018-02-01-preview",
+            "location": "[parameters('region1')]",
+            "condition": "[greater(parameters('region1Count'), 0)]",
+            "copy": {
+                "name": "containercopy",
+                "count": "[if(equals(parameters('region1Count'), 0), 1, parameters('region1Count'))]"
+            },
+            "properties": {
+                "containers": [
+                    {
+                        "name": "[concat(parameters('name'), '-', parameters('region1'), '-', copyIndex())]",
+                        "properties": {
+                            "image": "[parameters('image')]",
+                            "command": "[parameters('command')]",
+                            "ports": [
+                                {
+                                    "port": "[parameters('port')]"
+                                }
+                            ],
+                            "resources": {
+                                "requests": {
+                                    "cpu": "[parameters('cpuCores')]",
+                                    "memoryInGb": "[parameters('memoryInGb')]"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "osType": "Linux",
+                "ipAddress": {
+                    "type": "Public",
+                    "dnsNameLabel": "[concat(parameters('name'), '-', parameters('region1'), '-', copyIndex(), '-', uniqueString(resourceGroup().id))]",
+                    "ports": [
+                        {
+                            "protocol": "tcp",
+                            "port": "[parameters('port')]"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "type": "Microsoft.ContainerInstance/containerGroups",
+            "name": "[concat(parameters('name'), '-', parameters('region2'), '-', copyIndex())]",
+            "apiVersion": "2018-02-01-preview",
+            "location": "[parameters('region2')]",
+            "condition": "[greater(parameters('region2Count'), 0)]",
+            "copy": {
+                "name": "containercopy",
+                "count": "[if(equals(parameters('region2Count'), 0), 1, parameters('region2Count'))]"
+            },
+            "properties": {
+                "containers": [
+                    {
+                        "name": "[concat(parameters('name'), '-', parameters('region2'), '-', copyIndex())]",
+                        "properties": {
+                            "image": "[parameters('image')]",
+                            "command": "[parameters('command')]",
+                            "ports": [
+                                {
+                                    "port": "[parameters('port')]"
+                                }
+                            ],
+                            "resources": {
+                                "requests": {
+                                    "cpu": "[parameters('cpuCores')]",
+                                    "memoryInGb": "[parameters('memoryInGb')]"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "osType": "Linux",
+                "ipAddress": {
+                    "type": "Public",
+                    "dnsNameLabel": "[concat(parameters('name'), '-', parameters('region2'), '-', copyIndex(), '-', uniqueString(resourceGroup().id))]",
+                    "ports": [
+                        {
+                            "protocol": "tcp",
+                            "port": "[parameters('port')]"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "type": "Microsoft.ContainerInstance/containerGroups",
+            "name": "[concat(parameters('name'), '-', parameters('region3'), '-', copyIndex())]",
+            "apiVersion": "2018-02-01-preview",
+            "location": "[parameters('region3')]",
+            "condition": "[greater(parameters('region3Count'), 0)]",
+            "copy": {
+                "name": "containercopy",
+                "count": "[if(equals(parameters('region3Count'), 0), 1, parameters('region3Count'))]"
+            },
+            "properties": {
+                "containers": [
+                    {
+                        "name": "[concat(parameters('name'), '-', parameters('region3'), '-', copyIndex())]",
+                        "properties": {
+                            "image": "[parameters('image')]",
+                            "command": "[parameters('command')]",
+                            "ports": [
+                                {
+                                    "port": "[parameters('port')]"
+                                }
+                            ],
+                            "resources": {
+                                "requests": {
+                                    "cpu": "[parameters('cpuCores')]",
+                                    "memoryInGb": "[parameters('memoryInGb')]"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "osType": "Linux",
+                "ipAddress": {
+                    "type": "Public",
+                    "dnsNameLabel": "[concat(parameters('name'), '-', parameters('region3'), '-', copyIndex(), '-', uniqueString(resourceGroup().id))]",
+                    "ports": [
+                        {
+                            "protocol": "tcp",
+                            "port": "[parameters('port')]"
+                        }
+                    ]
+                }
+            }
+        }
+    ],
+    "outputs": {
+        "fqdn":{
+            "type": "string",
+            "value": "[concat(parameters('trafficManagerFQDN'),'.trafficmanager.net')]"
+        }
+    }
+}
