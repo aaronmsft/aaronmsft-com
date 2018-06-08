@@ -1,0 +1,401 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "logic_app_name": {
+            "defaultValue": "180600-logic-app",
+            "type": "string"
+        },
+        "connections_eventgrid_name": {
+            "defaultValue": "eventgrid",
+            "type": "string"
+        },
+        "connections_resourcemanager_name": {
+            "defaultValue": "resourcemanager",
+            "type": "string"
+        },
+        "delay_unit": {
+            "type": "string",
+            "allowedValues": [
+                "Second",
+                "Minute",
+                "Hour",
+                "Day",
+                "Week",
+                "Month"
+            ],
+            "defaultValue": "Minute",
+            "metadata": {
+                "description": "The unit of the delay specified at the end of the Resource Group name (e.g. Group_del_1)"
+            }
+        }
+    },
+    "variables": {
+        "sq":"'"
+    },
+    "resources": [
+        {
+            "comments": "Generalized from resource: '/subscriptions/.../resourceGroups/.../providers/Microsoft.Logic/workflows/180600-logic'.",
+            "type": "Microsoft.Logic/workflows",
+            "name": "[parameters('logic_app_name')]",
+            "apiVersion": "2017-07-01",
+            "location": "eastus",
+            "tags": {},
+            "scale": null,
+            "properties": {
+                "state": "Enabled",
+                "definition": {
+                    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {
+                        "$connections": {
+                            "defaultValue": {},
+                            "type": "Object"
+                        }
+                    },
+                    "triggers": {
+                        "When_a_resource_event_occurs": {
+                            "splitOn": "@triggerBody()",
+                            "type": "ApiConnectionWebhook",
+                            "inputs": {
+                                "body": {
+                                    "properties": {
+                                        "destination": {
+                                            "endpointType": "webhook",
+                                            "properties": {
+                                                "endpointUrl": "@{listCallbackUrl()}"
+                                            }
+                                        },
+                                        "filter": {
+                                            "includedEventTypes": [
+                                                "Microsoft.Resources.ResourceWriteSuccess"
+                                            ]
+                                        },
+                                        "topic": "[subscription().id]"
+                                    }
+                                },
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['eventgrid']['connectionId']"
+                                    }
+                                },
+                                "path": "[concat('/subscriptions/@{encodeURIComponent(', variables('sq'), subscription().subscriptionId, variables('sq'), ')}/providers/@{encodeURIComponent(', variables('sq'), 'Microsoft.Resources.Subscriptions', variables('sq'), ')}/resource/eventSubscriptions')]",
+                                "queries": {
+                                    "subscriptionName": "subscription1",
+                                    "x-ms-api-version": "2017-09-15-preview"
+                                }
+                            }
+                        }
+                    },
+                    "actions": {
+                        "Condition": {
+                            "actions": {
+                                "Delay": {
+                                    "runAfter": {},
+                                    "type": "Wait",
+                                    "inputs": {
+                                        "interval": {
+                                            "count": "@int(last(split(body('Parse_JSON')?['subject'], '_')))",
+                                            "unit": "[parameters('delay_unit')]"
+                                        }
+                                    }
+                                },
+                                "Delete_a_resource_group": {
+                                    "runAfter": {
+                                        "Delay": [
+                                            "Succeeded"
+                                        ]
+                                    },
+                                    "type": "ApiConnection",
+                                    "inputs": {
+                                        "host": {
+                                            "connection": {
+                                                "name": "@parameters('$connections')['resourcemanager']['connectionId']"
+                                            }
+                                        },
+                                        "method": "delete",
+                                        "path": "[concat('/subscriptions/@{encodeURIComponent(', variables('sq'), subscription().subscriptionId, variables('sq'), ')}/resourcegroups/@{encodeURIComponent(last(split(body(', variables('sq'), 'Parse_JSON', variables('sq'), ')?[', variables('sq'), 'subject', variables('sq'), '], ', variables('sq'), '/', variables('sq'), ')))}')]",
+                                        "queries": {
+                                            "x-ms-api-version": "2016-06-01"
+                                        }
+                                    }
+                                }
+                            },
+                            "runAfter": {
+                                "Parse_JSON": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "expression": {
+                                "and": [
+                                    {
+                                        "equals": [
+                                            "@body('Parse_JSON')?['eventType']",
+                                            "Microsoft.Resources.ResourceWriteSuccess"
+                                        ]
+                                    },
+                                    {
+                                        "equals": [
+                                            "@body('Parse_JSON')?['data']?['operationName']",
+                                            "Microsoft.Resources/subscriptions/resourcegroups/write"
+                                        ]
+                                    },
+                                    {
+                                        "equals": [
+                                            "@body('Parse_JSON')?['data']?['status']",
+                                            "Succeeded"
+                                        ]
+                                    },
+                                    {
+                                        "contains": [
+                                            "@body('Parse_JSON')?['subject']",
+                                            "_del_"
+                                        ]
+                                    }
+                                ]
+                            },
+                            "type": "If"
+                        },
+                        "Parse_JSON": {
+                            "runAfter": {},
+                            "type": "ParseJson",
+                            "inputs": {
+                                "content": "@triggerBody()",
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "authorization": {
+                                                    "properties": {
+                                                        "action": {
+                                                            "type": "string"
+                                                        },
+                                                        "evidence": {
+                                                            "properties": {
+                                                                "role": {
+                                                                    "type": "string"
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        },
+                                                        "scope": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "claims": {
+                                                    "properties": {
+                                                        "_claim_names": {
+                                                            "type": "string"
+                                                        },
+                                                        "_claim_sources": {
+                                                            "type": "string"
+                                                        },
+                                                        "aio": {
+                                                            "type": "string"
+                                                        },
+                                                        "appid": {
+                                                            "type": "string"
+                                                        },
+                                                        "appidacr": {
+                                                            "type": "string"
+                                                        },
+                                                        "aud": {
+                                                            "type": "string"
+                                                        },
+                                                        "e_exp": {
+                                                            "type": "string"
+                                                        },
+                                                        "exp": {
+                                                            "type": "string"
+                                                        },
+                                                        "http://schemas.microsoft.com/claims/authnclassreference": {
+                                                            "type": "string"
+                                                        },
+                                                        "http://schemas.microsoft.com/claims/authnmethodsreferences": {
+                                                            "type": "string"
+                                                        },
+                                                        "http://schemas.microsoft.com/identity/claims/objectidentifier": {
+                                                            "type": "string"
+                                                        },
+                                                        "http://schemas.microsoft.com/identity/claims/scope": {
+                                                            "type": "string"
+                                                        },
+                                                        "http://schemas.microsoft.com/identity/claims/tenantid": {
+                                                            "type": "string"
+                                                        },
+                                                        "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname": {
+                                                            "type": "string"
+                                                        },
+                                                        "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name": {
+                                                            "type": "string"
+                                                        },
+                                                        "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier": {
+                                                            "type": "string"
+                                                        },
+                                                        "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname": {
+                                                            "type": "string"
+                                                        },
+                                                        "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/upn": {
+                                                            "type": "string"
+                                                        },
+                                                        "iat": {
+                                                            "type": "string"
+                                                        },
+                                                        "in_corp": {
+                                                            "type": "string"
+                                                        },
+                                                        "ipaddr": {
+                                                            "type": "string"
+                                                        },
+                                                        "iss": {
+                                                            "type": "string"
+                                                        },
+                                                        "name": {
+                                                            "type": "string"
+                                                        },
+                                                        "nbf": {
+                                                            "type": "string"
+                                                        },
+                                                        "onprem_sid": {
+                                                            "type": "string"
+                                                        },
+                                                        "puid": {
+                                                            "type": "string"
+                                                        },
+                                                        "uti": {
+                                                            "type": "string"
+                                                        },
+                                                        "ver": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "correlationId": {
+                                                    "type": "string"
+                                                },
+                                                "httpRequest": {
+                                                    "properties": {
+                                                        "clientIpAddress": {
+                                                            "type": "string"
+                                                        },
+                                                        "clientRequestId": {
+                                                            "type": "string"
+                                                        },
+                                                        "method": {
+                                                            "type": "string"
+                                                        },
+                                                        "url": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "operationName": {
+                                                    "type": "string"
+                                                },
+                                                "resourceProvider": {
+                                                    "type": "string"
+                                                },
+                                                "resourceUri": {
+                                                    "type": "string"
+                                                },
+                                                "status": {
+                                                    "type": "string"
+                                                },
+                                                "subscriptionId": {
+                                                    "type": "string"
+                                                },
+                                                "tenantId": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "dataVersion": {
+                                            "type": "string"
+                                        },
+                                        "eventTime": {
+                                            "type": "string"
+                                        },
+                                        "eventType": {
+                                            "type": "string"
+                                        },
+                                        "id": {
+                                            "type": "string"
+                                        },
+                                        "metadataVersion": {
+                                            "type": "string"
+                                        },
+                                        "subject": {
+                                            "type": "string"
+                                        },
+                                        "topic": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "outputs": {}
+                },
+                "parameters": {
+                    "$connections": {
+                        "value": {
+                            "resourcemanager": {
+                                "connectionId": "[resourceId('Microsoft.Web/connections', parameters('connections_resourcemanager_name'))]",
+                                "connectionName": "resourcemanager",
+                                "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/eastus/managedApis/resourcemanager')]"
+                            },
+                            "eventgrid": {
+                                "connectionId": "[resourceId('Microsoft.Web/connections', parameters('connections_eventgrid_name'))]",
+                                "connectionName": "eventgrid",
+                                "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/eastus/managedApis/eventgrid')]"
+                            }
+                        }
+                    }
+                }
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/connections', parameters('connections_resourcemanager_name'))]",
+                "[resourceId('Microsoft.Web/connections', parameters('connections_eventgrid_name'))]"
+            ]
+        },
+        {
+            "comments": "Generalized from resource: '/subscriptions/.../resourceGroups/.../providers/Microsoft.Web/connections/resourcemanager'.",
+            "type": "Microsoft.Web/connections",
+            "name": "[parameters('connections_resourcemanager_name')]",
+            "apiVersion": "2016-06-01",
+            "location": "eastus",
+            "scale": null,
+            "properties": {
+                "displayName": "[parameters('connections_resourcemanager_name')]",
+                "customParameterValues": {},
+                "api": {
+                    "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/eastus/managedApis/arm')]"
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "comments": "Generalized from resource: '/subscriptions/.../resourceGroups/.../providers/Microsoft.Web/connections/eventgrid'.",
+            "type": "Microsoft.Web/connections",
+            "name": "[parameters('connections_eventgrid_name')]",
+            "apiVersion": "2016-06-01",
+            "location": "eastus",
+            "scale": null,
+            "properties": {
+                "displayName": "[parameters('connections_eventgrid_name')]",
+                "customParameterValues": {},
+                "api": {
+                    "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/eastus/managedApis/azureeventgrid')]"
+                }
+            },
+            "dependsOn": []
+        }
+    ]
+}
