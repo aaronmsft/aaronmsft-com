@@ -1,0 +1,110 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "profiles_name": {
+            "defaultValue": "cdn180600",
+            "type": "String"
+        },
+        "endpoints_name": {
+            "defaultValue": "cdn180600",
+            "type": "String"
+        },
+        "origins_hostname": {
+            "defaultValue": "",
+            "type": "String"
+        },
+        "customdomains_hostname": {
+            "defaultValue": "",
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "comments": "/subscriptions/.../resourcegroups/.../providers/Microsoft.Cdn/profiles/...",
+            "type": "Microsoft.Cdn/profiles",
+            "sku": {
+                "name": "Standard_Microsoft"
+            },
+            "name": "[parameters('profiles_name')]",
+            "apiVersion": "2016-04-02",
+            "location": "[resourceGroup().location]",
+            "tags": {},
+            "scale": null,
+            "properties": {
+                "provisioningState": "Succeeded",
+                "resourceState": "Active"
+            },
+            "dependsOn": []
+        },
+        {
+            "comments": "/subscriptions/.../resourcegroups/.../providers/Microsoft.Cdn/profiles/.../endpoints/...",
+            "type": "Microsoft.Cdn/profiles/endpoints",
+            "name": "[concat(parameters('profiles_name'), '/', parameters('endpoints_name'))]",
+            "apiVersion": "2016-04-02",
+            "location": "[resourceGroup().location]",
+            "tags": {},
+            "scale": null,
+            "properties": {
+                "originHostHeader": "[parameters('origins_hostname')]",
+                "isHttpAllowed": true,
+                "isHttpsAllowed": true,
+                "queryStringCachingBehavior": "IgnoreQueryString",
+                "originPath": null,
+                "origins": [
+                    {
+                        "name": "[replace(parameters('origins_hostname'), '.', '-')]",
+                        "properties": {
+                            "hostName": "[parameters('origins_hostname')]",
+                            "httpPort": 80,
+                            "httpsPort": 443
+                        }
+                    }
+                ],
+                "contentTypesToCompress": [],
+                "isCompressionEnabled": false
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Cdn/profiles', parameters('profiles_name'))]"
+            ]
+        },
+        {
+            "comments": "/subscriptions/.../resourcegroups/.../providers/Microsoft.Cdn/profiles/.../endpoints/.../customdomains/...",
+            "condition": "[greater(length(parameters('customdomains_hostname')), 0)]",
+            "type": "Microsoft.Cdn/profiles/endpoints/customdomains",
+            "name": "[concat(parameters('profiles_name'), '/', parameters('endpoints_name'), '/', greater(length(parameters('customdomains_hostname')), 0), replace(parameters('customdomains_hostname'), '.', '-'), 'empty1')]",
+            "apiVersion": "2016-04-02",
+            "scale": null,
+            "properties": {
+                "hostName": "[parameters('customdomains_hostname')]"
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Cdn/profiles', parameters('profiles_name'))]",
+                "[resourceId('Microsoft.Cdn/profiles/endpoints', parameters('profiles_name'), parameters('endpoints_name'))]"
+            ]
+        },
+        {
+            "comments": "/subscriptions/.../resourcegroups/.../providers/Microsoft.Cdn/profiles/.../endpoints/.../origins/...",
+            "type": "Microsoft.Cdn/profiles/endpoints/origins",
+            "name": "[concat(parameters('profiles_name'), '/', parameters('endpoints_name'), '/', replace(parameters('origins_hostname'), '.', '-'))]",
+            "apiVersion": "2016-04-02",
+            "scale": null,
+            "properties": {
+                "hostName": "[parameters('origins_hostname')]",
+                "httpPort": 80,
+                "httpsPort": 443
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Cdn/profiles', parameters('profiles_name'))]",
+                "[resourceId('Microsoft.Cdn/profiles/endpoints', parameters('profiles_name'), parameters('endpoints_name'))]"
+            ]
+        }
+    ],
+    "outputs": {
+        "hostName": {
+          "type": "string",
+          "value": "[reference(resourceId('Microsoft.Cdn/profiles/endpoints', parameters('profiles_name'), parameters('endpoints_name'))).hostName]"
+        }
+    }
+}
