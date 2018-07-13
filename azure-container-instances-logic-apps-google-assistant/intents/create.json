@@ -1,0 +1,65 @@
+{
+  "id": "08f4630f-571c-425e-bc0d-66fc83d701e5",
+  "name": "create",
+  "auto": true,
+  "contexts": [],
+  "responses": [
+    {
+      "resetContexts": false,
+      "affectedContexts": [],
+      "parameters": [
+        {
+          "id": "9ff36c4b-7cdb-449f-bc25-7d3d40b0fe0b",
+          "required": true,
+          "dataType": "@Container",
+          "name": "Container",
+          "value": "$Container",
+          "isList": false
+        }
+      ],
+      "messages": [],
+      "defaultResponsePlatforms": {},
+      "speech": []
+    }
+  ],
+  "priority": 500000,
+  "cortanaCommand": {
+    "navigateOrService": "NAVIGATE",
+    "target": ""
+  },
+  "webhookUsed": true,
+  "webhookForSlotFilling": false,
+  "lastUpdate": 1526060489,
+  "fallbackIntent": false,
+  "events": [],
+  "userSays": [
+    {
+      "id": "89de88ff-b975-4c55-9e66-1df942f2f079",
+      "data": [
+        {
+          "text": "create container"
+        }
+      ],
+      "isTemplate": false,
+      "count": 0,
+      "updated": 1526060292,
+      "isAuto": false
+    },
+    {
+      "id": "8769c8e5-55a9-4c61-963a-81e74a8c887e",
+      "data": [
+        {
+          "text": "create"
+        }
+      ],
+      "isTemplate": false,
+      "count": 0,
+      "updated": 1526060292,
+      "isAuto": false
+    }
+  ],
+  "followUpIntents": [],
+  "liveAgentHandoff": false,
+  "endInteraction": false,
+  "templates": []
+}

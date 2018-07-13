@@ -1,0 +1,25 @@
+{
+  "id": "6f7d37e2-590f-44e0-9827-c51d40625d5f",
+  "name": "Container",
+  "isOverridable": true,
+  "entries": [
+    {
+      "value": "hello-world",
+      "synonyms": [
+        "hello world",
+        "test",
+        "start"
+      ]
+    },
+    {
+      "value": "goodbye-world",
+      "synonyms": [
+        "goodbye world",
+        "quit",
+        "stop"
+      ]
+    }
+  ],
+  "isEnum": false,
+  "automatedExpansion": false
+}

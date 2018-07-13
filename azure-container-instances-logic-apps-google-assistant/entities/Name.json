@@ -1,0 +1,27 @@
+{
+  "id": "a10e2d6f-b53f-4442-9e37-8f503138c3eb",
+  "name": "Name",
+  "isOverridable": true,
+  "entries": [
+    {
+      "value": "create",
+      "synonyms": [
+        "create"
+      ]
+    },
+    {
+      "value": "container",
+      "synonyms": [
+        "container"
+      ]
+    },
+    {
+      "value": "logic",
+      "synonyms": [
+        "logic"
+      ]
+    }
+  ],
+  "isEnum": false,
+  "automatedExpansion": false
+}
