@@ -1,0 +1,224 @@
+{
+    "$connections": {
+        "value": {
+            "aci": {
+                "connectionId": "/subscriptions/b9840869-8266-4fc8-8060-cfb339c08284/resourceGroups/180500-logic-apps/providers/Microsoft.Web/connections/aci",
+                "connectionName": "aci",
+                "id": "/subscriptions/b9840869-8266-4fc8-8060-cfb339c08284/providers/Microsoft.Web/locations/eastus/managedApis/aci"
+            }
+        }
+    },
+    "definition": {
+        "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+        "actions": {
+            "Switch": {
+                "cases": {
+                    "Case": {
+                        "actions": {
+                            "Create_container_group": {
+                                "inputs": {
+                                    "body": {
+                                        "location": "eastus",
+                                        "properties": {
+                                            "containers": [
+                                                {
+                                                    "name": "@triggerBody()?['queryResult']['parameters']['Container']",
+                                                    "properties": {
+                                                        "command": [
+                                                            "sh",
+                                                            "-c",
+                                                            "wget -qO- http://ifconfig.co/ip"
+                                                        ],
+                                                        "image": "alpine:latest",
+                                                        "resources": {
+                                                            "requests": {
+                                                                "cpu": 1,
+                                                                "memoryInGB": 1
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ],
+                                            "osType": "Linux",
+                                            "restartPolicy": "Never"
+                                        }
+                                    },
+                                    "host": {
+                                        "connection": {
+                                            "name": "@parameters('$connections')['aci']['connectionId']"
+                                        }
+                                    },
+                                    "method": "put",
+                                    "path": "/subscriptions/@{encodeURIComponent('b9840869-8266-4fc8-8060-cfb339c08284')}/resourceGroups/@{encodeURIComponent('180500-logic-apps')}/providers/Microsoft.ContainerInstance/containerGroups/@{encodeURIComponent(triggerBody()?['queryResult']['parameters']['Container'])}",
+                                    "queries": {
+                                        "x-ms-api-version": "2017-10-01-preview"
+                                    }
+                                },
+                                "runAfter": {},
+                                "type": "ApiConnection"
+                            },
+                            "Response": {
+                                "inputs": {
+                                    "body": {
+                                        "payload": {
+                                            "google": {
+                                                "expectUserResponse": false,
+                                                "richResponse": {
+                                                    "items": [
+                                                        {
+                                                            "simpleResponse": {
+                                                                "textToSpeech": "Thank you! We have started @{triggerBody()?['queryResult']['parameters']['Container']}"
+                                                            }
+                                                        }
+                                                    ]
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "statusCode": 200
+                                },
+                                "kind": "Http",
+                                "runAfter": {
+                                    "Create_container_group": [
+                                        "Succeeded"
+                                    ]
+                                },
+                                "type": "Response"
+                            }
+                        },
+                        "case": "create"
+                    }
+                },
+                "default": {
+                    "actions": {
+                        "Response_2": {
+                            "inputs": {
+                                "body": {
+                                    "payload": {
+                                        "google": {
+                                            "expectUserResponse": false,
+                                            "richResponse": {
+                                                "items": [
+                                                    {
+                                                        "simpleResponse": {
+                                                            "textToSpeech": "You triggered @{triggerBody()?['queryResult']['intent']['displayName']}!"
+                                                        }
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    }
+                                },
+                                "statusCode": 200
+                            },
+                            "kind": "Http",
+                            "runAfter": {},
+                            "type": "Response"
+                        }
+                    }
+                },
+                "expression": "@triggerBody()?['queryResult']['intent']['displayName']",
+                "runAfter": {},
+                "type": "Switch"
+            }
+        },
+        "contentVersion": "1.0.0.0",
+        "outputs": {},
+        "parameters": {
+            "$connections": {
+                "defaultValue": {},
+                "type": "Object"
+            }
+        },
+        "triggers": {
+            "manual": {
+                "inputs": {
+                    "schema": {
+                        "properties": {
+                            "originalDetectIntentRequest": {
+                                "properties": {
+                                    "payload": {
+                                        "properties": {},
+                                        "type": "object"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "queryResult": {
+                                "properties": {
+                                    "allRequiredParamsPresent": {
+                                        "type": "boolean"
+                                    },
+                                    "diagnosticInfo": {
+                                        "properties": {},
+                                        "type": "object"
+                                    },
+                                    "fulfillmentMessages": {
+                                        "items": {
+                                            "properties": {
+                                                "text": {
+                                                    "properties": {
+                                                        "text": {
+                                                            "items": {
+                                                                "type": "string"
+                                                            },
+                                                            "type": "array"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "required": [
+                                                "text"
+                                            ],
+                                            "type": "object"
+                                        },
+                                        "type": "array"
+                                    },
+                                    "intent": {
+                                        "properties": {
+                                            "displayName": {
+                                                "type": "string"
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "type": "object"
+                                    },
+                                    "intentDetectionConfidence": {
+                                        "type": "number"
+                                    },
+                                    "languageCode": {
+                                        "type": "string"
+                                    },
+                                    "parameters": {
+                                        "properties": {
+                                            "Container": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "type": "object"
+                                    },
+                                    "queryText": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "responseId": {
+                                "type": "string"
+                            },
+                            "session": {
+                                "type": "string"
+                            }
+                        },
+                        "type": "object"
+                    }
+                },
+                "kind": "Http",
+                "type": "Request"
+            }
+        }
+    }
+}

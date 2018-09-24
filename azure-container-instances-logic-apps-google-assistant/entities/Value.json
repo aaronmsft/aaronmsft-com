@@ -1,0 +1,22 @@
+{
+  "id": "67c1522d-1eea-4114-913f-35453cdf4c14",
+  "name": "Value",
+  "isOverridable": true,
+  "entries": [
+    {
+      "value": "hello-world",
+      "synonyms": [
+        "hello-world",
+        "hello world"
+      ]
+    },
+    {
+      "value": "alpine",
+      "synonyms": [
+        "alpine"
+      ]
+    }
+  ],
+  "isEnum": false,
+  "automatedExpansion": false
+}

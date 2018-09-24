@@ -1,0 +1,94 @@
+{
+  "id": "9b862606-b653-4c72-8d4e-2a0e5452110f",
+  "name": "run",
+  "auto": true,
+  "contexts": [],
+  "responses": [
+    {
+      "resetContexts": false,
+      "affectedContexts": [],
+      "parameters": [
+        {
+          "id": "e5d05221-83c5-47b4-8776-e3c6f6207f04",
+          "required": true,
+          "dataType": "@Name",
+          "name": "Name",
+          "value": "$Name",
+          "prompts": [],
+          "isList": false
+        },
+        {
+          "id": "83f490bd-2bfb-4ee8-8023-f133a26ad5d8",
+          "required": true,
+          "dataType": "@Value",
+          "name": "Value",
+          "value": "$Value",
+          "isList": false
+        }
+      ],
+      "messages": [
+        {
+          "type": 0,
+          "speech": []
+        }
+      ],
+      "defaultResponsePlatforms": {},
+      "speech": []
+    }
+  ],
+  "priority": 500000,
+  "cortanaCommand": {
+    "navigateOrService": "NAVIGATE",
+    "target": ""
+  },
+  "webhookUsed": true,
+  "webhookForSlotFilling": false,
+  "lastUpdate": 1526060563,
+  "fallbackIntent": false,
+  "events": [],
+  "userSays": [
+    {
+      "id": "ed4cc083-6ec9-46e1-949a-cbeb929baed2",
+      "data": [
+        {
+          "text": "run "
+        },
+        {
+          "text": "container",
+          "alias": "Name",
+          "meta": "@Name",
+          "userDefined": false
+        },
+        {
+          "text": " "
+        },
+        {
+          "text": "alpine",
+          "alias": "Value",
+          "meta": "@Value",
+          "userDefined": false
+        }
+      ],
+      "isTemplate": false,
+      "count": 0,
+      "updated": 1526060563,
+      "isAuto": false
+    },
+    {
+      "id": "c57d9aa3-9166-4a1d-a66e-065cc1fbe882",
+      "data": [
+        {
+          "text": "run"
+        }
+      ],
+      "isTemplate": false,
+      "count": 0,
+      "updated": 1526060563,
+      "isAuto": false
+    }
+  ],
+  "followUpIntents": [],
+  "liveAgentHandoff": false,
+  "endInteraction": false,
+  "templates": []
+}
