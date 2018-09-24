@@ -1,1 +1,15 @@
-s
+apiVersion: v1
+kind: Service
+metadata:
+  name: spring-music
+  labels:
+    app: spring-music
+spec:
+  type: LoadBalancer 
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 8080
+  selector:
+    app: spring-music

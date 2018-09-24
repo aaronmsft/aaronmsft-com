@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spring-music
+spec:
+  selector:
+    matchLabels:
+      app: spring-music
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: spring-music
+    spec:
+      containers:
+      - name: spring-music
+        image: acr9f889c.azurecr.io/spring-music:v1
+        ports:
+        - containerPort: 8080
+        env:
+        - name: TEST
+          value: value
+        resources:
+          limits:
+            memory: 512Mi
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 30
