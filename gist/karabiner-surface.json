@@ -1,0 +1,70 @@
+{
+    "title": "Surface Pen",
+    "rules": [
+        {
+            "description": "Map Surface Pen's long press, double press and press to 0, 1 and 2 respectively.",
+            "manipulators": [
+                {
+                    "from": {
+                        "key_code": "f18",
+                        "modifiers": {
+                            "mandatory": [
+                                "left_command"
+                            ],
+                            "optional": [
+                                "any"
+                            ]
+                        }
+                    },
+                    "to": [
+                        {
+                            "key_code": "0",
+                            "modifiers": []
+                        }
+                    ],
+                    "type": "basic"
+                },
+                {
+                    "from": {
+                        "key_code": "f19",
+                        "modifiers": {
+                            "mandatory": [
+                                "left_command"
+                            ],
+                            "optional": [
+                                "any"
+                            ]
+                        }
+                    },
+                    "to": [
+                        {
+                            "key_code": "1",
+                            "modifiers": []
+                        }
+                    ],
+                    "type": "basic"
+                },
+                {
+                    "from": {
+                        "key_code": "f20",
+                        "modifiers": {
+                            "mandatory": [
+                                "left_command"
+                            ],
+                            "optional": [
+                                "any"
+                            ]
+                        }
+                    },
+                    "to": [
+                        {
+                            "key_code": "2",
+                            "modifiers": []
+                        }
+                    ],
+                    "type": "basic"
+                }
+            ]
+        }
+    ]
+}
