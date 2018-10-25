@@ -3,7 +3,6 @@
 ```bash
 # see: https://docs.microsoft.com/en-us/azure/aks/aad-integration
 
-
 RESOURCE_GROUP='181000-aks-aad'
 AKS_NAME='aksaad181000'
 SERVER_APP_SECRET=''
