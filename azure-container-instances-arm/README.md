@@ -1,12 +1,11 @@
 # Azure Container Instances (ACI) in seconds with Azure Resource Manager (ARM)
-# ----------------------------------------------------------------------------
 
 blog: https://www.aaronmsft.com/posts/azure-container-instances-arm/
 
 
 # 1. Deploy ARM Template via Azure CLI
-# ------------------------------------
 
+```bash
 RESOURCE_GROUP='180400-test'
 LOCATION='eastus'
 
@@ -24,11 +23,11 @@ az group deployment create -g $RESOURCE_GROUP --mode Complete --template-uri htt
 
 # deploy an empty template to delete our resources
 az group deployment create -g $RESOURCE_GROUP --mode Complete --template-uri https://raw.githubusercontent.com/aaronmsft/aaronmsft-com/master/azure-container-instances-arm/empty.json
-
+```
 
 # 2. Deploy ARM Template via Azure Portal
-# ---------------------------------------
 
+```
 TEMPLATE_URL='https://raw.githubusercontent.com/aaronmsft/aaronmsft-com/master/azure-container-instances-arm/azuredeploy.json'
 OUTPUT_URL='https://portal.azure.com/#create/Microsoft.Template/uri/'$(echo $TEMPLATE_URL | jq -s -R -r @uri )
 echo $OUTPUT_URL
@@ -44,3 +43,4 @@ while true; do
     curl --connect-timeout 1 'http://'$CONTAINER_HOST'/host'
     sleep 1
 done
+```
