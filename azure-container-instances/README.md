@@ -1,12 +1,11 @@
 # Azure Container Instances (ACI) across 3 regions in under 30 seconds with Azure Traffic Manager
-# -----------------------------------------------------------------------------------------------
 
 blog: https://www.aaronmsft.com/posts/azure-container-instances/
 
 
 # 1. deploy
-# ---------
 
+```bash
 RESOURCE_GROUP='180300-aci'
 PROFILE_NAME='180300-traffic-manager'
 CONTAINER_NAME='container-1'
@@ -55,11 +54,12 @@ for index in "${array[@]}" ; do
         --target $CONTAINER_FQDN
 
 done
+```
 
 
 # 2. test
-# -------
 
+```bash
 # curl
 echo 'http://'$DNS_NAME'.trafficmanager.net/'
 while true; do
@@ -74,3 +74,4 @@ while true; do
     curl --connect-timeout 1 'http://'$CONTAINER_HOST'/'
     sleep 1
 done
+```
