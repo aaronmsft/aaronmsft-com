@@ -1,21 +1,17 @@
 # Static sites on Azure Storage with Custom Domain and HTTPS via Azure CDN (Microsoft)
-# ------------------------------------------------------------------------------------
 
 blog: coming soon!
 
-
 # Requirements
-# ------------
 
 - bash / Cloud Shell: https://docs.microsoft.com/en-ca/azure/cloud-shell/quickstart
 - Azure CLI: https://docs.microsoft.com/en-us/cli/azure/install-azure-cli
 - Azure CLI storage-preview extension: https://github.com/Azure/azure-cli-extensions/tree/master/src/storage-preview
 - Hugo: https://gohugo.io/
 
-
 # Azure Storage
-# -------------
 
+```bash
 az extension add --name storage-preview
 
 RESOURCE_GROUP='180600-static-site'
@@ -37,11 +33,11 @@ az storage blob service-properties update \
 WEB_ENDPOINT=$(az storage account show -g $RESOURCE_GROUP -n $STORAGE_ACCOUNT | jq -r .primaryEndpoints.web)
 
 export AZURE_STORAGE_CONNECTION_STRING=$(az storage account show-connection-string -g $RESOURCE_GROUP -n $STORAGE_ACCOUNT | jq -r .connectionString)
-
+```
 
 # hugo + az
-# ---------
 
+```bash
 git clone git@github.com:aaronmsft/hello-hugo.git
 cd hello-hugo/
 hugo
@@ -53,11 +49,11 @@ az storage blob delete-batch --source $STORAGE_CONTAINER --if-unmodified-since $
 cd ../
 
 echo $WEB_ENDPOINT
-
+```
 
 # Azure CDN (Microsoft)
-# ---------------------
 
+```bash
 WEB_HOSTNAME=$(echo $WEB_ENDPOINT | awk -F/ '{print $3}')
 PROFILE_NAME="cdn180629"
 ENDPOINT_NAME="cdn180629" # must be globally unique
@@ -85,10 +81,9 @@ CUSTOMDOMAIN_NAME=$(az cdn custom-domain list -g $RESOURCE_GROUP --profile-name 
 az cdn custom-domain enable-https -g $RESOURCE_GROUP --profile-name $PROFILE_NAME --endpoint-name $ENDPOINT_NAME --name $CUSTOMDOMAIN_NAME
 
 az cdn custom-domain list -g $RESOURCE_GROUP --profile-name $PROFILE_NAME --endpoint-name $ENDPOINT_NAME | jq -r '.[] | select(.hostName == "'$CUSTOMDOMAIN_HOSTNAME'") | .'
-
+```
 
 # Resources
-# ---------
 
 - https://azure.microsoft.com/en-us/blog/azure-storage-static-web-hosting-public-preview/
 - https://github.com/Azure/azure-cli-extensions/tree/master/src/storage-preview
