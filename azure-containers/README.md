@@ -1,5 +1,8 @@
-# VARIABLES
-# ---------
+# Azure Containers
+
+# Bash Variables
+
+```bash
 RESOURCE_GROUP='180300-demo'
 LOCATION='eastus'
 REGISTRY_NAME='acr180300demo'
@@ -7,27 +10,27 @@ CONTAINER_NAME='container-1'
 CLUSTER_NAME='aks180300demo'
 WEBAPP_NAME='hello-webapp-180300'
 DIR=$(pwd)
+```
 
+# Azure Resource Group
 
-# AZURE RESOURCE_GROUP
-# --------------------
-
+```bash
 az group create -n $RESOURCE_GROUP -l $LOCATION
+```
 
+# Azure Container Registry (ACR)
 
-# AZURE CONTAINER REGISTRY (ACR)
-# ------------------------------
-
+```bash
 az acr create -n $REGISTRY_NAME -g $RESOURCE_GROUP --sku Basic --admin-enabled true
 
 az acr login -n $REGISTRY_NAME
 
 PASSWORD=$(az acr credential show --name $REGISTRY_NAME | jq -r .passwords[0].value)
+```
 
+# Docker
 
-# DOCKER
-# ------
-
+```bash
 # hello-golang 
 cd $DIR/golang
 
@@ -49,11 +52,11 @@ docker run --rm -p 8080:8080/tcp -it hello-python
 
 docker tag hello-python $REGISTRY_NAME'.azurecr.io/demo/hello-python'
 docker push $REGISTRY_NAME'.azurecr.io/demo/hello-python'
+```
 
+# Azure Container Instances (ACI)
 
-# AZURE CONTAINER INSTANCES (ACI)
-# -------------------------------
-
+```bash
 az container create -g $RESOURCE_GROUP --name $CONTAINER_NAME --cpu 1 --memory 1 \
     --ip-address public \
     --registry-login-server $REGISTRY_NAME'.azurecr.io' \
@@ -83,11 +86,11 @@ while true; do
 done
 
 az container delete -y -g $RESOURCE_GROUP --name $CONTAINER_NAME
+```
 
+# Azure Kubernetes Service (AKS)
 
-# AZURE CONTAINER SERVICE (AKS)
-# -----------------------------
-
+```bash
 az aks create --resource-group $RESOURCE_GROUP --name $CLUSTER_NAME \
     --location $LOCATION \
     --node-count 2 \
@@ -144,11 +147,11 @@ while true; do
     curl 'http://'$IP_ADDRESS'/host'
     sleep 1
 done
+```
 
+# Helm
 
-# HELM
-# ----
-
+```bash
 # brew install kubernetes-helm
 
 helm init
@@ -162,11 +165,11 @@ helm install stable/wordpress
 helm install stable/ghost
 
 helm delete ...
+```
 
+# Draft
 
-# DRAFT
-# -----
-
+```bash
 # install
 brew tap azure/draft
 brew install draft
@@ -196,11 +199,11 @@ rm -rf charts/ .draftignore Dockerfile draft.toml
 draft create
 draft up
 draft connect
+```
 
+# Azure Web App for Containers
 
-# WEB APP FOR CONTAINERS
-# ----------------------
-
+```bash
 # Docs: https://docs.microsoft.com/en-us/azure/app-service/containers/app-service-linux-intro
 
 az appservice plan create -g $RESOURCE_GROUP -n AppServiceLinux --is-linux --sku S1
@@ -220,11 +223,11 @@ az webapp config container set -g $RESOURCE_GROUP -n $WEBAPP_NAME \
    --docker-custom-image-name nginx
 
 az webapp log tail -g $RESOURCE_GROUP -n $WEBAPP_NAME
+```
 
+## Test
 
-# TEST
-# ----
-
+```bash
 # http | docker | delivery | slots | testing | scale
 
 echo $WEBAPP_NAME.azurewebsites.net
@@ -234,28 +237,17 @@ curl $WEBAPP_NAME'.azurewebsites.net'
 hey 'https://'$WEBAPP_NAME'.azurewebsites.net'
 
 hey -c 50 -n 100000 'https://'$WEBAPP_NAME'.azurewebsites.net'
+```
 
+# Docs and Resources
 
-# DOCS & RESOURCES
-# ----------------
-
-Azure Cloud Shell
-- https://docs.microsoft.com/en-us/azure/cloud-shell/overview
-Visual Studio Code
-- https://code.visualstudio.com/docs/editor/integrated-terminal
-Azure CLI
-- https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest
-Docker
-- https://docs.microsoft.com/en-us/azure/container-instances/container-instances-tutorial-prepare-app#build-the-container-image
-Azure Container Registry (ACR)
-- https://docs.microsoft.com/en-us/azure/container-registry/container-registry-get-started-azure-cli
-Azure Container Instances (ACI)
-- https://docs.microsoft.com/en-us/azure/container-instances/container-instances-quickstart
-Azure Container Services (AKS)
-- https://docs.microsoft.com/en-us/azure/aks/kubernetes-walkthrough
-Helm
-- https://docs.microsoft.com/en-us/azure/aks/kubernetes-helm
-Draft
-- https://docs.microsoft.com/en-us/azure/aks/kubernetes-draft
-Web App for Containers
-- https://docs.microsoft.com/en-us/azure/app-service/containers/tutorial-custom-docker-image
+- [Azure Cloud Shell](https://docs.microsoft.com/en-us/azure/cloud-shell/overview)
+- [Visual Studio Code](https://code.visualstudio.com/docs/editor/integrated-terminal)
+- [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest)
+- [Docker](https://docs.microsoft.com/en-us/azure/container-instances/container-instances-tutorial-prepare-app#build-the-container-image)
+- [Azure Container Registry (ACR)](https://docs.microsoft.com/en-us/azure/container-registry/container-registry-get-started-azure-cli)
+- [Azure Container Instances (ACI)](https://docs.microsoft.com/en-us/azure/container-instances/container-instances-quickstart)
+- [Azure Container Services (AKS)](https://docs.microsoft.com/en-us/azure/aks/kubernetes-walkthrough)
+- [Helm](https://docs.microsoft.com/en-us/azure/aks/kubernetes-helm)
+- [Draft](https://docs.microsoft.com/en-us/azure/aks/kubernetes-draft)
+- [Web App for Containers](https://docs.microsoft.com/en-us/azure/app-service/containers/tutorial-custom-docker-image)
