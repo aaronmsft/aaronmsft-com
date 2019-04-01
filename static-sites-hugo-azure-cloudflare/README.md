@@ -1,11 +1,10 @@
 # Static Sites with Hugo, Azure Blob Storage and Cloudflare Workers
-# -----------------------------------------------------------------
 
 blog: https://www.aaronmsft.com/posts/static-sites-hugo-azure-cloudflare/
 
 # 1. Hugo + Docker
-# ----------------
 
+```bash
 docker build -t hugo .
 
 docker run --rm -v `pwd`:/pwd/ -p 1313:1313/tcp -it hugo
@@ -37,10 +36,11 @@ hugo server -D --bind "0.0.0.0"
 
 # build site
 hugo
+```
 
 # 2. Azure Blob Storage
-# ---------------------
 
+```bash
 RESOURCE_GROUP='180300-static'
 STORAGE_ACCOUNT='180300static' # this needs to be globally unique
 STORAGE_CONTAINER='aaronmsft-com'
@@ -57,3 +57,4 @@ az storage container create -n $STORAGE_CONTAINER --public-access container
 cd aaronmsft-com/
 # az storage blob delete-batch --source $STORAGE_CONTAINER
 az storage blob upload-batch --source public/ --destination $STORAGE_CONTAINER
+```
