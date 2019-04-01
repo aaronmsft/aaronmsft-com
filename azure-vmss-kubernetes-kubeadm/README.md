@@ -1,11 +1,10 @@
 # Explore Kubernetes and Azure Low-priority VMs on Virtual Machine Scale Sets with kubeadm
-# ----------------------------------------------------------------------------------------
 
 blog: https://www.aaronmsft.com/posts/azure-vmss-kubernetes-kubeadm/
 
 # 1. azure
-# --------
 
+```bash
 RESOURCE_GROUP='180300-k8s-vmss'
 LOCATION='eastus'
 IMAGE='UbuntuLTS'
@@ -34,11 +33,12 @@ az vmss create -g $RESOURCE_GROUP -n vmss0 \
     --custom-data cloud-init-node.sh \
     --priority Low \
     --generate-ssh-keys
+```
 
 
 # 2. master node (vm)
-# -------------------
 
+```bash
 # ssh into master node
 ssh $USER'@ip'$TMP_I'-'$RESOURCE_GROUP'.'$LOCATION'.cloudapp.azure.com'
 
@@ -46,11 +46,11 @@ sudo chown $(id -u):$(id -g) /home/kubeconfig
 export KUBECONFIG=/home/kubeconfig
 
 kubectl get nodes
-
+```
 
 # 3. agent nodes (vmss)
-# ---------------------
 
+```bash
 # check the status of your instances
 az vmss get-instance-view -g $RESOURCE_GROUP -n vmss0 --instance-id '*'
 
@@ -62,11 +62,12 @@ ssh $USER'@lb1-'$RESOURCE_GROUP'.'$LOCATION'.cloudapp.azure.com' -p '5000'$INSTA
 cat /tmp/hello.txt
 tail -f /var/log/cloud-init.log
 tail -f /var/log/cloud-init-output.log
+```
 
 
 # 4. kubectl job (on master node)
-# -------------------------------
 
+```bash
 kubectl create -f https://raw.githubusercontent.com/kubernetes-up-and-running/examples/master/10-1-job-oneshot.yaml
 
 kubectl describe jobs/oneshot
@@ -76,3 +77,4 @@ kubectl create -f https://raw.githubusercontent.com/kubernetes-up-and-running/ex
 kubectl describe jobs/parallel
 
 kubectl get pods
+```
