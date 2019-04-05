@@ -1,0 +1,310 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "parameter1": {
+            "type": "object",
+            "defaultValue": {
+                "array1": [
+                    {
+                        "region": "eastus",
+                        "instances": 1
+                    },
+                    {
+                        "region": "westus",
+                        "instances": 1
+                    },
+                    {
+                        "region": "westus2",
+                        "instances": 1
+                    }
+                ]
+            }
+        },
+        "name": {
+            "type": "string",
+            "metadata": {
+                "description": "Name for the container group"
+            },
+            "defaultValue": "aci"
+        },
+        "image": {
+            "type": "string",
+            "metadata": {
+                "description": "Container image to deploy. Should be of the form accountName/imagename:tag for images stored in Docker Hub or a fully qualified URI for a private registry like the Azure Container Registry."
+            },
+            "defaultValue": "aaronmsft/hello-golang"
+        },
+        "command": {
+            "type": "array",
+            "metadata": {
+                "description": ""
+            },
+            "defaultValue": []
+        },
+        "port": {
+            "type": "string",
+            "metadata": {
+                "description": "Port to open on the container and the public IP address."
+            },
+            "defaultValue": "80"
+        },
+        "cpuCores": {
+            "type": "string",
+            "metadata": {
+                "description": "The number of CPU cores to allocate to the container. Must be an integer."
+            },
+            "defaultValue": "1.0"
+        },
+        "memoryInGb": {
+            "type": "string",
+            "metadata": {
+                "description": "The amount of memory to allocate to the container in gigabytes."
+            },
+            "defaultValue": "1.0"
+        },
+        "frontDoorFQDN": {
+            "type": "string",
+            "metadata": {
+                "description": "DNS prefix for your Front Door (i.e. frontDoorFQDN.azurefd.net). This must be globally unique and will follow the format tm-<uniqueString>.azurefd.net by default."
+            },
+            "defaultValue": "[concat('fd-', uniqueString(resourceGroup().id))]"
+        },
+        "trafficManagerFQDN": {
+            "type": "string",
+            "metadata": {
+                "description": "DNS prefix for your Traffic Manager (i.e. trafficManagerFQDN.trafficmanager.net). This must be globally unique and will follow the format tm-<uniqueString>.trafficmanager.net by default."
+            },
+            "defaultValue": "[concat('tm-', uniqueString(resourceGroup().id))]"
+        },
+        "trafficManagerName": {
+            "defaultValue": "[concat('tm-', uniqueString(resourceGroup().id))]",
+            "metadata": {
+                "description": "The name of the Traffic Manager resource."
+            },
+            "type": "string"
+        }
+    },
+    "variables": {
+        "variable1": {
+            "copy": [
+                {
+                    "name": "region0",
+                    "count": "[parameters('parameter1').array1[0].instances]",
+                    "input": {
+                        "name": "[concat(parameters('parameter1').array1[0].region, '-', copyIndex('region0'))]",
+                        "region": "[parameters('parameter1').array1[0].region]"
+                    }
+                },
+                {
+                    "name": "region1",
+                    "count": "[parameters('parameter1').array1[1].instances]",
+                    "input": {
+                        "name": "[concat(parameters('parameter1').array1[1].region, '-', copyIndex('region1'))]",
+                        "region": "[parameters('parameter1').array1[1].region]"
+                    }
+                },
+                {
+                    "name": "region2",
+                    "count": "[parameters('parameter1').array1[2].instances]",
+                    "input": {
+                        "name": "[concat(parameters('parameter1').array1[2].region, '-', copyIndex('region2'))]",
+                        "region": "[parameters('parameter1').array1[2].region]"
+                    }
+                }
+            ]
+        },
+        "variable1Concat": "[concat(variables('variable1').region0, variables('variable1').region1, variables('variable1').region2)]",
+        "frontdoorLocation": "global",
+        "frontdoorref": "[resourceId('Microsoft.Network/frontDoors', parameters('frontDoorFQDN'))]"
+    },
+    "resources": [
+        {
+            "tags": {},
+            "type": "Microsoft.Network/frontDoors",
+            "apiVersion": "2018-08-01",
+            "location": "[variables('frontdoorLocation')]",
+            "name": "[parameters('frontDoorFQDN')]",
+            "properties": {
+                "enabledState": "Enabled",
+                "backendPools": [
+                    {
+                        "name": "backendPool1",
+                        "properties": {
+                            "copy": [
+                                {
+                                    "name": "backends",
+                                    "count": "[length(variables('variable1Concat'))]",
+                                    "input": {
+                                        "address": "[concat(parameters('name'), '-', variables('variable1Concat')[copyIndex('backends')].name, '-', uniqueString(resourceGroup().id), '.', variables('variable1Concat')[copyIndex('backends')].region, '.azurecontainer.io')]",
+                                        "backendHostHeader": "[concat(parameters('name'), '-', variables('variable1Concat')[copyIndex('backends')].name, '-', uniqueString(resourceGroup().id), '.', variables('variable1Concat')[copyIndex('backends')].region, '.azurecontainer.io')]",
+                                        "enabledState": "Enabled",
+                                        "httpPort": 80,
+                                        "httpsPort": 443,
+                                        "priority": 1,
+                                        "weight": 50
+                                    }
+                                }
+                            ],
+                            "healthProbeSettings": {
+                                "id": "[concat(variables('frontdoorref'), '/healthProbeSettings/', 'healthProbeSettings1')]"
+                            },
+                            "loadBalancingSettings": {
+                                "id": "[concat(variables('frontdoorref'), '/loadBalancingSettings/', 'loadBalancingSettings1')]"
+                            }
+                        }
+                    }
+                ],
+                "frontendEndpoints": [
+                    {
+                        "name": "[concat(parameters('frontDoorFQDN'), '-azurefd-net')]",
+                        "properties": {
+                            "hostName": "[concat(parameters('frontDoorFQDN'), '.azurefd.net')]",
+                            "sessionAffinityEnabledState": "Disabled",
+                            "sessionAffinityTtlSeconds": 0
+                        }
+                    }
+                ],
+                "healthProbeSettings": [
+                    {
+                        "name": "healthProbeSettings1",
+                        "properties": {
+                            "intervalInSeconds": 5,
+                            "path": "/",
+                            "protocol": "Http"
+                        }
+                    }
+                ],
+                "loadBalancingSettings": [
+                    {
+                        "name": "loadBalancingSettings1",
+                        "properties": {
+                            "additionalLatencyMilliseconds": 0,
+                            "sampleSize": 1,
+                            "successfulSamplesRequired": 1
+                        }
+                    }
+                ],
+                "routingRules": [
+                    {
+                        "name": "routingRules1",
+                        "properties": {
+                            "acceptedProtocols": [
+                                "Http",
+                                "Https"
+                            ],
+                            "backendPool": {
+                                "id": "[concat(variables('frontdoorref'), '/backendPools/', 'backendPool1')]"
+                            },
+                            "customForwardingPath": "/",
+                            "enabledState": "Enabled",
+                            "forwardingProtocol": "HttpOnly",
+                            "frontendEndpoints": [
+                                {
+                                    "id": "[concat(variables('frontdoorref'), '/frontendEndpoints/', parameters('frontDoorFQDN'), '-azurefd-net')]"
+                                }
+                            ],
+                            "patternsToMatch": [
+                                "/*"
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/trafficManagerProfiles",
+            "name": "[parameters('trafficManagerName')]",
+            "apiVersion": "2017-05-01",
+            "location": "global",
+            "properties": {
+                "profileStatus": "Enabled",
+                "trafficRoutingMethod": "Weighted",
+                "dnsConfig": {
+                    "relativeName": "[parameters('trafficManagerFQDN')]",
+                    "fqdn": "[concat(parameters('trafficManagerFQDN'),'.trafficmanager.net')]",
+                    "ttl": 30
+                },
+                "monitorConfig": {
+                    "protocol": "HTTP",
+                    "port": 80,
+                    "path": "/",
+                    "intervalInSeconds": 10,
+                    "toleratedNumberOfFailures": 0,
+                    "timeoutInSeconds": 5
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "type": "Microsoft.Network/trafficManagerProfiles/externalEndpoints",
+            "name": "[concat(parameters('trafficManagerName'), '/', 'endpoint', '-', copyIndex())]",
+            "apiVersion": "2017-05-01",
+            "dependsOn": [
+                "[concat('Microsoft.Network/trafficManagerProfiles','/',parameters('trafficManagerName'))]"
+            ],
+            "copy": {
+                "name": "containercopy",
+                "count": "[length(variables('variable1Concat'))]"
+            },
+            "properties": {
+                "endpointStatus": "Enabled",
+                "target": "[concat(parameters('name'), '-', variables('variable1Concat')[copyIndex()].name, '-', uniqueString(resourceGroup().id), '.', variables('variable1Concat')[copyIndex()].region, '.azurecontainer.io')]",
+                "weight": 1
+            }
+        },
+        {
+            "type": "Microsoft.ContainerInstance/containerGroups",
+            "name": "[concat(parameters('name'), '-', variables('variable1Concat')[copyIndex()].name)]",
+            "apiVersion": "2018-02-01-preview",
+            "location": "[variables('variable1Concat')[copyIndex()].region]",
+            "copy": {
+                "name": "containercopy",
+                "count": "[length(variables('variable1Concat'))]"
+            },
+            "properties": {
+                "containers": [
+                    {
+                        "name": "[concat(parameters('name'), '-', variables('variable1Concat')[copyIndex()].name)]",
+                        "properties": {
+                            "image": "[parameters('image')]",
+                            "command": "[parameters('command')]",
+                            "ports": [
+                                {
+                                    "port": "[parameters('port')]"
+                                }
+                            ],
+                            "resources": {
+                                "requests": {
+                                    "cpu": "[parameters('cpuCores')]",
+                                    "memoryInGb": "[parameters('memoryInGb')]"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "osType": "Linux",
+                "ipAddress": {
+                    "type": "Public",
+                    "dnsNameLabel": "[concat(parameters('name'), '-', variables('variable1Concat')[copyIndex()].name, '-', uniqueString(resourceGroup().id))]",
+                    "ports": [
+                        {
+                            "protocol": "tcp",
+                            "port": "[parameters('port')]"
+                        }
+                    ]
+                }
+            }
+        }
+    ],
+    "outputs": {
+        "frontDoorFQDN": {
+            "type": "string",
+            "value": "[concat(parameters('frontDoorFQDN'),'.trafficmanager.net')]"
+        },
+        "trafficManagerFQDN": {
+            "type": "string",
+            "value": "[concat(parameters('trafficManagerFQDN'),'.trafficmanager.net')]"
+        }
+    }
+}
