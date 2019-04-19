@@ -1,6 +1,6 @@
 # Docker on Windows
 
-Below are some aliases and a Dockerfile that I've found useful for running Docker on Windows 10 for local development scenarios.
+Below are some aliases and a Dockerfile that I've found useful for running Docker on Windows 10 for local development scenarios, particularly on my [Surface Go](https://aaronmsft.com/posts/surface-go-developers/), which I previously used almost exclusely via Ubuntu.
 
 Add aliases to `profile.ps1`.
 ```powershell
