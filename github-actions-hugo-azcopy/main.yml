@@ -1,0 +1,32 @@
+name: CI
+
+on: 
+  push:
+    branches:
+    - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Install hugo + azcopy
+      run: |
+        echo "installing hugo"
+        sudo mkdir -p /home/hugo/
+        curl -L https://github.com/gohugoio/hugo/releases/download/v0.57.2/hugo_0.57.2_Linux-64bit.tar.gz | tar -zxf - --directory /home/hugo/
+        sudo mv /home/hugo/hugo /usr/bin/
+        echo "installing azcopy"
+        sudo mkdir -p /home/azcopy/
+        curl -L https://aka.ms/downloadazcopy-v10-linux | tar -zxf - --directory /home/azcopy/
+        sudo mv $(find /home/azcopy/ -type f -name azcopy) /usr/bin/
+    - name: Run hugo + azcopy
+      env:
+        SOURCE_DIRECTORY: aaronmsft-com/
+        AZURE_STORAGE_CONTAINER_URL: https://180300static.blob.core.windows.net/aaronmsft-com/
+        AZURE_STORAGE_SAS_TOKEN: ${{ secrets.AZURE_STORAGE_SAS_TOKEN }}
+      run: |
+        echo $PWD
+        cd $SOURCE_DIRECTORY
+        hugo -v
+        azcopy sync public/ "${AZURE_STORAGE_CONTAINER_URL}${AZURE_STORAGE_SAS_TOKEN}" --delete-destination=true
