@@ -28,5 +28,6 @@ jobs:
       run: |
         echo $PWD
         cd $SOURCE_DIRECTORY
+        export HUGO_ENV='production' 
         hugo -v
         azcopy sync public/ "${AZURE_STORAGE_CONTAINER_URL}${AZURE_STORAGE_SAS_TOKEN}" --delete-destination=true
